@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>道路设计要点辅助工具（测试）</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* 聊天容器的样式 */
+      .chat-container {
+            width: 400px;
+            max-height: 800px; /* 设置最大高度 */
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column; /* 垂直排列 */
+            overflow-y: auto; /* 添加垂直滚动条 */
+        }
+
+        /* 消息的通用样式 */
+      .message {
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 20px;
+            max-width: 100%;
+            text-align: left;
+        }
+
+        /* 用户发送的消息样式 */
+      .message.user {
+            background-color: #e1f5fe; /* 用户消息背景色 */
+            align-self: flex-end; /* 用户消息右对齐 */
+        }
+
+        /* 机器人回复的消息样式 */
+      .message.bot {
+            background-color: #f1f1f1; /* 机器人消息背景色 */
+            align-self: flex-start; /* 机器人消息左对齐 */
+        }
+
+        /* 输入区域的容器样式 */
+      .input-container {
+            display: flex;
+            align-items: center;
+            padding: 10px; /* 添加内边距 */
+            background: #ffffff; /* 输入框背景色 */
+            border-top: 1px solid #ccc; /* 顶部边框 */
+        }
+
+        /* 输入框的样式 */
+        input[type="text"] {
+            flex: 1; /* 输入框占据剩余空间 */
+            height: 50px; /* 设置输入框高度 */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px; /* 输入框和按钮之间的间距 */
+            font-size: 16px;
+        }
+
+        /* 发送按钮的样式 */
+        button {
+            padding: 10px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* 发送按钮鼠标悬停时的样式 */
+        button:hover {
+            background: #0056b3;
+        }
+
+        /* 突出显示的文本样式 */
+      .highlight {
+            font-size: 18px; /* 字体大小 */
+            font-weight: bold; /* 加粗 */
+        }
+
+        /* 表格的通用样式 */
+        table {
+            width:100%;
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+        }
+
+        /* 表格表头和单元格的样式 */
+        th, td {
+            border: 1px solid #000;
+            padding: 3px;
+            white-space: nowrap;
+			text-align: center;  /* 新增：文本居中 */
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container" id="chatContainer">
+    <div class="message bot">
+        外事不决问百度，内事不决请输入
+    </div>
+</div>
+
+<div class="input-container">
+    <input type="text" id="userInput" placeholder="输入关键词..." onkeydown="checkEnter(event)">
+    <button onclick="sendMessage()">发送</button>
+</div>
+
+<script>
+    // 检测键盘事件
+    function checkEnter(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    function sendMessage() {
+        const userInput = document.getElementById('userInput').value;
+        if (userInput.trim() === "") return;
+
+        // 显示用户输入的消息
+        displayMessage(userInput, 'user');
+
+        // 检测关键词并生成相应的回复
+        let botResponse = detectKeyword(userInput);
+        displayMessage(botResponse, 'bot');
+
+        // 清空输入框
+        document.getElementById('userInput').value = '';
+
+        // 滚最新消息
+        const chatContainer = document.getElementById('chatContainer');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function displayMessage(message, type) {
+        const chatContainer = document.getElementById('chatContainer');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        
+        messageDiv.innerHTML = message.replace(/\n/g, "<br>"); // 替换换行符为 <br>
+        chatContainer.appendChild(messageDiv); // 将新消息插入到聊天框中
+    }
+
+    function detectKeyword(input) {
+        const keywords = {
+            '天气': '未调取到正确的API',
+            '时间': getCurrentTime(), // 调用函数获得时间。
+            '日期': getCurrentDate(), // 调用函数获取当前日期。
+            '星期': getCurrentWeekday(), // 调用函数获取当前星期。
+            '你好': '你好！很高兴见到你！',
+            '帮助': '我可以帮助你查询天气、时间等信息。',
+            '价值观': '<span class="highlight">规划设计集团核心价值观</span><br>孜孜以求<br>先行一步<br>协同共生<br>创造价值', // 添加规划集团价值观
+            '规范': '<br>'+
+                '1.《城市道路交通工程项目规范》（GB 55011-2021）<br>'+
+                '2.《城市道路工程设计规范》（CJJ 193-2012）2016年版<br>'+
+                '3.《城市道路路线设计规范》（CJJ 193-2012）<br>' +
+                '4.《城市道路交叉口设计规程》（CJJ 152-2010）<br>' +
+                '5.《城镇道路路面设计规范》（CJJ 169-2012）<br>' +
+                '6.《城市道路路基设计规范》（CJJ194-2013）<br>' +
+                '7.《透水水泥混凝土路面技术规程》（DGJ32/TJ61-2015）<br>'+
+                '8.《无障碍设计规范》（GB50763-2012）<br>' +
+                '9.《建筑与市政工程无障碍通用规范》（GB 55019-2021）<br>'+
+                '10.《建筑与市政工程抗震通用规范》（GB 55002-2021）<br>' +
+                '11.《公路工程技术标准》（JTG B01-2014）<br>' +
+                '12.《公路沥青路面设计规范》（JTJ D50-2017）<br>'+
+                '13.《公路水泥混凝土路面设计规范》（JTG D40-2011）<BR>'+
+                '14.《公路路基设计规范》（JTG D30-2015）<BR>'+
+                '15.《公路沥青路面施工技术规范》（JTG F40-2004）<br>'+
+                '16.《公路路面基层施工技术细则》（JTG/T F20-2015）<br>'+
+                '17.《城镇道路工程施工与质量验收规范》（CJJ 1-2008）',
+                '你是谁': '我是小助手',
+                '我是谁': '你是勤劳的工程师',
+                '全称': '江苏设协工程建设施工图审查有限公司',
+            '号码'	:'		13951951854			<br>	'	,
+ 			'深度'	:'	《市政公用工程设计文件编制深度规定（2013年版）》		',	
+			'标准'	:'			'+	
+				'	1.道路等级：城市主（次）干路；	<br>	'+	
+				'	2.设计速度：50（40）km/h；	<br>	'+	
+				'	3.设计荷载：BZZ-100；	<br>	'+	
+				'	4.道路最小净高：机动车道4.5m，非机动车道（人行道）2.5m。	<br>	'+	
+				'	5.停车视距:60m\40m\30m\20m。	<br>	'+	
+				'	6.交通量等级：中交通；	<br>	'+	
+				'	7.交通量达到饱和状态时的道路设计年限：20（15）年；	<br>	'+	
+				'	8.路面结构设计工作年限：15（10）年；	<br>	'+	
+				'	9.抗震设防烈度：7度；	<br>	'+	
+				'	10.坐标系：2008南京地方坐标系；	<br>	'+	
+				'	11.高程系：1985国家高程基准。		',	
+			'指标'	:'	<table border="1">		'+	
+				'	<tr>		'+	//表格第一行
+				'	<td>项目名称</td>		'+	
+				'	<td>单位</td>		'+	
+				'	<td colspan="4">规范值</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第二行
+				'	<td>道路等级</td>		'+	
+				'	<td>  </td>		'+	
+				'	<td colspan="2">主干路</td>		'+	
+				'	<td>次干路</td>		'+	
+				'	<td>支路</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第三行
+				'	<td> 设计速度 </td>		'+	
+				'	<td>km/h</td>		'+	
+				'	<td>60</td>		'+	
+				'	<td>50</td>		'+	
+				'	<td>40</td>		'+	
+				'	<td>30</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第四行
+				'	<td>不设超高最小半径</td>		'+	
+				'	<td>m</td>		'+	
+				'	<td>600</td>		'+	
+				'	<td>400</td>		'+	
+				'	<td>300</td>		'+	
+				'	<td>150</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第五行
+				'	<td>设超高最小半径（一般值）</td>		'+	
+				'	<td>m</td>		'+	
+				'	<td>300</td>		'+	
+				'	<td>200</td>		'+	
+				'	<td>150</td>		'+	
+				'	<td>85</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第六行
+				'	<td>设超高最小半径（极限值）</td>		'+	
+				'	<td>m</td>		'+	
+				'	<td>150</td>		'+	
+				'	<td>100</td>		'+	
+				'	<td>70</td>		'+	
+				'	<td>40</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第七行
+				'	<td>圆曲线最小长度</td>		'+	
+				'	<td>m</td>		'+	
+				'	<td>50</td>		'+	
+				'	<td>40</td>		'+	
+				'	<td>35</td>		'+	
+				'	<td>25</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第八行
+				'	<td>最大纵坡</td>		'+	
+				'	<td>%</td>		'+	
+				'	<td>2.5</td>		'+	
+				'	<td>2.5</td>		'+	
+				'	<td>2.5</td>		'+	
+				'	<td>2.5</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第九行
+				'	<td>最小纵坡</td>		'+	
+				'	<td>%</td>		'+	
+				'	<td>0.3</td>		'+	
+				'	<td>0.3</td>		'+	
+				'	<td>0.3</td>		'+	
+				'	<td>0.3</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十行
+				'	<td>最小坡长</td>		'+	
+				'	<td>m</td>		'+	
+				'	<td>150</td>		'+	
+				'	<td>130</td>		'+	
+				'	<td>110</td>		'+	
+				'	<td>85</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十一行
+				'	<td>凸形竖曲线最小半径</td>		'+	
+				'	<td>m</td>		'+	
+				'	<td>1800</td>		'+	
+				'	<td>1350</td>		'+	
+				'	<td>600</td>		'+	
+				'	<td>400</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十二行
+				'	<td>凹形竖曲线最小半径</td>		'+	
+				'	<td>m</td>		'+	
+				'	<td>1500</td>		'+	
+				'	<td>1050</td>		'+	
+				'	<td>700</td>		'+	
+				'	<td>400</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十三行
+				'	<td>竖曲线最小长度一般值</td>		'+	
+				'	<td>m</td>		'+	
+				'	<td>120</td>		'+	
+				'	<td>100</td>		'+	
+				'	<td>90</td>		'+	
+				'	<td>60</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十四行
+				'	<td>竖曲线最小长度极限值</td>		'+	
+				'	<td>m</td>		'+	
+				'	<td>50</td>		'+	
+				'	<td>40</td>		'+	
+				'	<td>35</td>		'+	
+				'	<td>25</td>		'+	
+				'	</tr>		'+	
+				'	</table>		',	
+			'缓和曲线'	:'	<table border="1">		'+	
+				'	<tr>		'+	
+				'	<td>速度</td>		'+	
+				'	<td>60</td>		'+	
+				'	<td>50</td>		'+	
+				'	<td>40</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	
+				'	<td>不设缓和曲线最小半径</td>		'+	
+				'	<td>1000</td>		'+	
+				'	<td>700</td>		'+	
+				'	<td>500</td>		'+	
+				'	</tr>		'+	
+				'	</table>		',	
+			'坡长限制'	:'	<table border="1">		'+	
+				'	<tr>		'+	
+				'	<td>纵坡（%）</td>		'+	
+				'	<td>3.5</td>		'+	
+				'	<td>3.0</td>		'+	
+				'	<td>2.5</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	
+				'	<td>非机动车道最大坡长（m）</td>		'+	
+				'	<td>150</td>		'+	
+				'	<td>200</td>		'+	
+				'	<td>300</td>		'+	
+				'	</tr>		'+	
+				'	</table>		',	
+			'免审'	:'	1.主次干路及桥隧构筑物必审，支路免审；	<br>	'+	
+				'	2.管径小于1000mm免审；	<br>	'+	
+				'	3.居住建筑：三层及以下，地下建筑面积小于1000m2且基坑开挖深度小于5m，免审；	<br>	'+	
+				'	4.公共建筑：中小学、幼儿园、医院、养老院、福利院，必审；	<br>	'+	
+				'	5.公共建筑：地上建筑面积小于2000m2，地下建筑面积小于1000m2且基坑开挖深度小于5m，免审；	<br>	'+	
+				'	6.工业厂房：地下建筑面积小于1000m2且基坑开挖深度小于5m，免审；	<br>	'+	
+				'	7.小型工业类、仓储类、研发办公类带规划方案出让的，免审；	<br>	'+	
+				'	8.装饰建筑面积小于5000m2或12层及以下的住宅单项装饰装修工程，免审。		',	
+			'农路'	:'	<table border="1">		'+	
+				'	<tr>		'+	//表格第一行
+				'	<td>设计速度</td>		'+	
+				'	<td colspan="2">15km/h</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第二行
+				'	<td>公路等级</td>		'+	
+				'	<td> 四级公路（Ⅰ） </td>		'+	
+				'	<td> 四级公路（Ⅱ） </td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第三行
+				'	<td> 交通路预测年限 </td>		'+	
+				'	<td colspan="2">10年</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第四行
+				'	<td>年平均日交通量</td>		'+	
+				'	<td>小于1000辆</td>		'+	
+				'	<td>小于400辆</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第五行
+				'	<td>车道数</td>		'+	
+				'	<td>2</td>		'+	
+				'	<td>1</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第六行
+				'	<td>车道宽</td>		'+	
+				'	<td>3m</td>		'+	
+				'	<td>3.5m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第七行
+				'	<td>错车道</td>		'+	
+				'	<td>/</td>		'+	
+				'	<td>6m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第八行
+				'	<td>硬化路肩宽</td>		'+	
+				'	<td>0.25m</td>		'+	
+				'	<td>0.5m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第九行
+				'	<td>净空</td>		'+	
+				'	<td colspan="2">4.5m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十行
+				'	<td>停车视距</td>		'+	
+				'	<td colspan="2">15m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十一行
+				'	<td colspan="3"></td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十二行
+				'	<td>一般最小半径</td>		'+	
+				'	<td colspan="2">20m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十三行
+				'	<td>极限最小半径</td>		'+	
+				'	<td>15m</td>		'+	
+				'	<td>12m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十四行
+				'	<td>不设超高最小半径</td>		'+	
+				'	<td colspan="2">90m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十五行
+				'	<td>平曲线最小长度</td>		'+	
+				'	<td colspan="2">40m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十六行
+				'	<td>圆曲线最小长度</td>		'+	
+				'	<td colspan="2">13m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十七行
+				'	<td>最大超高</td>		'+	
+				'	<td colspan="2">4%</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十八行
+				'	<td>最大超高（村镇路段）</td>		'+	
+				'	<td colspan="2">2%</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第十九行
+				'	<td>路拱横坡</td>		'+	
+				'	<td colspan="2">2%</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第二十行
+				'	<td>路拱形式</td>		'+	
+				'	<td>双向</td>		'+	
+				'	<td>单向</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第二十一行
+				'	<td colspan="3"></td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第二十二行
+				'	<td>最大纵坡</td>		'+	
+				'	<td colspan="2">12%</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第二十三行
+				'	<td>最小坡长</td>		'+	
+				'	<td colspan="2">45m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第二十四行
+				'	<td>竖曲线最小半径（一般值）</td>		'+	
+				'	<td colspan="2">150m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第二十五行
+				'	<td>竖曲线最小半径（极限值）</td>		'+	
+				'	<td colspan="2">75m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第二十六行
+				'	<td>竖曲线最小长度（一般值）</td>		'+	
+				'	<td colspan="2">40m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第二十七行
+				'	<td>竖曲线最小长度（极限值）</td>		'+	
+				'	<td colspan="2">15m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第二十八行
+				'	<td colspan="3"></td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第二十九行
+				'	<td>沥青路面设计使用年限</td>		'+	
+				'	<td colspan="2">8m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第三十行
+				'	<td>水泥路面设计使用年限</td>		'+	
+				'	<td colspan="2">10m</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第三十一行
+				'	<td>压实度（0-80）</td>		'+	
+				'	<td colspan="2">94%</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第三十二行
+				'	<td>压实度（80-150）</td>		'+	
+				'	<td colspan="2">93%</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第三十三行
+				'	<td>压实度（150-）</td>		'+	
+				'	<td colspan="2">90%</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第三十四行
+				'	<td>回弹模量</td>		'+	
+				'	<td colspan="2">40MPa</td>		'+	
+				'	</tr>		'+	
+				'	<tr>		'+	//表格第三十五行
+				'	<td>水泥路面设计强度</td>		'+	
+				'	<td colspan="2">4MPa</td>		'+	
+				'	</tr>		'+	
+ 				'	</table>		',
+			'水稳'	:'	<table border="1">		'+
+				'	<tr>		'+
+				'	<td>筛孔尺寸mm</td>		'+
+				'	<td>31.5</td>		'+
+				'	<td>26.5</td>		'+
+				'	<td>19</td>		'+
+				'	<td>9.5</td>		'+
+				'	<td>4.75</td>		'+
+				'	<td>2.63</td>		'+
+				'	</tr>		'+
+				'	<td>通过质量百分率%</td>		'+
+				'	<td>100</td>		'+
+				'	<td>90~100</td>		'+
+				'	<td>72~89</td>		'+
+				'	<td>17~71</td>		'+
+				'	<td>8~16</td>		'+
+				'	<td>0~7</td>		'+
+				'	</tr>		'+
+				'	</table>		'+
+				'骨架密实型级配',
+			'级配碎石'	:'	<table border="1">		'+
+				'	<tr>		'+
+				'	<td>筛孔尺寸mm</td>		'+
+				'	<td>37.5</td>		'+
+				'	<td>31.5</td>		'+
+				'	<td>19</td>		'+
+				'	<td>4.75</td>		'+
+				'	<td>2.36</td>		'+
+				'	<td>0.6</td>		'+
+				'	<td>0.075</td>		'+
+				'	</tr>		'+
+				'	<td>通过质量百分率%</td>		'+
+				'	<td>100</td>		'+
+				'	<td>90~100</td>		'+
+				'	<td>73~88</td>		'+
+				'	<td>49~69</td>		'+
+				'	<td>29~54</td>		'+
+				'	<td>17~37</td>		'+
+				'	<td>8~20</td>		'+
+				'	<td>0~7</td>		'+
+				'	</tr>		'+
+				'	</table>'+
+				'	适用于次干路及以下道路的碎石基层		',
+			'动稳定度'	:'	<table border="1">		'+
+				'	<tr>		'+
+				'	<td>普通沥青混合料，不小于</td>		'+
+				'	<td>1000</td>		'+
+				'	</tr>		'+
+				'	<td>改性沥青混合料，不小于</td>		'+
+				'	<td>2800</td>		'+
+				'	</tr>		'+
+				'	<td>SMA混合料，改性，不小于</td>		'+
+				'	<td>3000</td>		'+
+				'	</tr>		'+
+				'	<td>OGFC混合料，一般交通，不小于</td>		'+
+				'	<td>1500</td>		'+
+				'	</tr>		'+
+				'	<td>OGFC混合料，重交通，不小于</td>		'+
+				'	<td>3000</td>		'+
+				'	</tr>		'+
+				'	</table>		'+
+				'	适用于江苏地区，七月平均气温大于30°，气候分布区1-3		',
+			'沥青'	:'	<table border="1">		'+
+				'	<td>SMA</td>		'+
+				'	<td>98%</td>		'+
+				'	</tr>		'+
+				'	<td>快速路、主干路、各级公路</td>		'+
+				'	<td>96%</td>		'+
+				'	</tr>		'+
+				'	<td>次干路、支路</td>		'+
+				'	<td>95%</td>		'+
+				'	</table>		',
+			'粘层'	:'	<table border="1">		'+
+				'	<td>粘层</td>		'+
+				'	<td>乳化沥青PC-3</td>		'+
+				'	<td colspan="2">0.3~0.6L/m2</td>		'+
+				'	</tr>		'+
+				'	<td>透层</td>		'+
+				'	<td>乳化沥青PC-2</td>		'+
+				'	<td colspan="2">0.7~1.5L/m2</td>		'+
+				'	</tr>		'+
+				'	<td>下封层</td>		'+
+				'	<td>乳化沥青PC-1</td>		'+
+				'	<td>7~9L/m2</td>		'+
+				'	<td>0.9~1.0kg/m2</td>		'+
+				'	</tr>		'+
+				'	</table>		',
+				
+				
+        };
+
+        // 查找匹配的关键词
+        for (const key in keywords) {
+            if (input.includes(key)) {
+                return keywords[key];
+            }
+        }
+        console.log("没有找到相关内容的关键词:", input); // 调试信息
+        return '没有找到相关内容，请输入精确关键词。';
+    }
+
+    // 获取当前星期几的函数
+    function getCurrentWeekday() {
+        const days = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+        const today = new Date();
+        return days[today.getDay()]; // getDay() 返回 0（星期日）到 6（星期六）
+    }
+
+    // 获取当前时间的函数
+    function getCurrentTime() {
+        const now = new Date();
+        const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+        return now.toLocaleString('zh-CN', options); // 格式化为中文格式的日期时间
+    }
+
+    // 获取当前日期的函数
+    function getCurrentDate() {
+        const now = new Date();
+        const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+        return now.toLocaleDateString('zh-CN', options); // 格式化为中文格式的日期
+    }
+</script>
+  <datalist id="keywords">
+    <option value="压实度">
+    <option value="水稳压实度">
+    <option value="沥青压实度">
+    <option value="弯沉">
+    <option value="沥青弯沉">
+    <option value="水稳弯沉">
+  </datalist>
+
+</body>
+</html>
