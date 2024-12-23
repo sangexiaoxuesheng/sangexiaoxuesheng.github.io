@@ -1,192 +1,240 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh"> <!-- 设置文档语言为中文 -->
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>道路设计要点辅助工具（测试）</title>
+    <meta charset="UTF-8"> <!-- 设置字符编码为UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 适配不同设备的视口设置 -->
+    <title>道路设计智慧辅助工具（测试）</title> <!-- 页面标题 -->
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+            font-family: Arial, sans-serif; /* 设置字体 */
+            background-color: #f0f0f0; /* 页面背景色 */
+            display: flex; /* 使用Flexbox布局 */
+			justify-content: center; /* 水平居中对齐 */
+            align-items: center; /* 垂直居中对齐 */
+            flex-direction: column; /* 垂直排列 */
+            height: 80vh; /* 设置高度为视口高度 */
+            margin: 0; /* 清除默认边距 */
         }
 
         /* 聊天容器的样式 */
-      .chat-container {
-            width: 400px;
+        .chat-container {
+		   width: 100%; /* 设置宽度为父容器的100%*/
+ 			max-width:340px; /*设置最大宽度 */
             max-height: 800px; /* 设置最大高度 */
-            background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
+            background: #ffffff; /* 背景色为白色 */
+            border-radius: 8px; /* 边角圆润 */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* 添加阴影 */
+            display: flex; /* 使用Flexbox布局 */
             flex-direction: column; /* 垂直排列 */
             overflow-y: auto; /* 添加垂直滚动条 */
+            padding: 10px; /* 添加内边距 */
+
         }
 
         /* 消息的通用样式 */
-      .message {
-            padding: 10px 15px;
-            margin: 5px;
-            border-radius: 20px;
-            max-width: 100%;
-            text-align: left;
+        .message {
+            padding: 10px 15px; /* 内边距 */
+            margin: 5px; /* 外边距 */
+            border-radius: 20px; /* 边角圆润 */
+            max-width: 100%; /* 最大宽度为100% */
+            text-align: left; /* 文本左对齐 */
+            cursor: default; /* 设置光标为默认样式 */
         }
 
         /* 用户发送的消息样式 */
-      .message.user {
+        .message.user {
             background-color: #e1f5fe; /* 用户消息背景色 */
             align-self: flex-end; /* 用户消息右对齐 */
         }
 
         /* 机器人回复的消息样式 */
-      .message.bot {
+        .message.bot {
             background-color: #f1f1f1; /* 机器人消息背景色 */
             align-self: flex-start; /* 机器人消息左对齐 */
         }
 
         /* 输入区域的容器样式 */
-      .input-container {
-            display: flex;
-            align-items: center;
+        .input-container {
+            display: flex; /* 使用Flexbox布局 */
+            align-items: center; /* 垂直居中对齐 */
             padding: 10px; /* 添加内边距 */
             background: #ffffff; /* 输入框背景色 */
-            border-top: 1px solid #ccc; /* 顶部边框 */
+            border: 1px solid #ccc; /* 边框 */
+            border-radius: 10px; /* 边角圆润 */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+			max-width: 260px; /* 设置最大宽度与聊天容器一致 */
+            width: 100%; /* 宽度为100% */
+			padding-left: 20px;   /* 左内边距 */
+			padding-right: 80px;   /* 左内边距 */
         }
 
         /* 输入框的样式 */
         input[type="text"] {
-            flex: 1; /* 输入框占据剩余空间 */
-            height: 50px; /* 设置输入框高度 */
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            height: 30px; /* 设置输入框高度 */
+            padding: 5px; /* 内边距 */
+            border: 1px solid #ccc; /* 边框 */
+            border-radius: 5px; /* 边角圆润 */
             margin-right: 10px; /* 输入框和按钮之间的间距 */
-            font-size: 12px;
+            font-size: 14px; /* 字体大小 */
+ 
+			margin-bottom: 1px; /* 增加底部外边距 */
         }
 
         /* 发送按钮的样式 */
         button {
-            padding: 10px;
-            border: none;
-            background: #007bff;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-        }
+            padding: 5px 10px; /* 内边距 */
+            background-color: #007bff; /* 背景色 */
+            color: white; /* 字体颜色 */
+            border: none; /* 无边框 */
+            border-radius: 5px; /* 边角圆润 */
+            cursor: pointer; /* 手型光标 */
+            font-size: 30px; /* 字体大小 */
+					}
 
         /* 发送按钮鼠标悬停时的样式 */
         button:hover {
-            background: #0056b3;
+            background: #0056b3; /* 鼠标悬停时背景色 */
         }
 
-        /* 突出显示的文本样式 */
-      .highlight {
-            font-size: 18px; /* 字体大小 */
-            font-weight: bold; /* 加粗 */
+        /* 自定义下拉菜单样式 */
+        .dropdown {
+            position: relative; /* 相对定位 */
+            display: inline-block; /* 行内块元素 */
+            width: 100%; /* 宽度为100% */
+        }
+
+        .dropdown-content {
+            display: none; /* 默认隐藏 */
+            position: absolute; /* 绝对定位 */
+            background-color: #f9f9f9; /* 背景色 */
+            min-width: 160px; /* 最小宽度 */
+            border: 1px solid #ccc; /* 边框 */
+            z-index: 1; /* 层级 */
+        }
+
+        .dropdown-content div {
+            padding: 8px; /* 内边距 */
+            cursor: pointer; /* 设置光标为手型 */
+        }
+
+        .dropdown-content div:hover {
+            background-color: #ddd; /* 鼠标悬停时背景色 */
+        }
+
+        .show {
+            display: block; /* 显示下拉菜单 */
         }
 
         /* 表格的通用样式 */
         table {
-            width:100%;
-            border-collapse: collapse;
-            font-family: Arial, sans-serif;
+            width: 100%; /* 宽度为100% */
+            border-collapse: collapse; /* 边框合并 */
+            font-family: Arial, sans-serif; /* 字体 */
         }
 
         /* 表格表头和单元格的样式 */
         th, td {
-            border: 1px solid #000;
-            padding: 3px;
-            white-space: nowrap;
-			text-align: center;  /* 新增：文本居中 */
+            border: 1px solid #000; /* 边框 */
+            padding: 3px; /* 内边距 */
+            white-space: nowrap; /* 不换行 */
+            text-align: center; /* 文本居中 */
         }
     </style>
 </head>
 <body>
 
+<!-- 聊天容器 -->
 <div class="chat-container" id="chatContainer">
-    <div class="message bot">
-        外事不决问百度，内事不决请输入
-    </div>
+    <div class="message bot">道路设计智慧辅助工具（测试）0.1</div> <!-- 机器人初始消息 -->
 </div>
 
+<!-- 输入区域 -->
 <div class="input-container">
-    <input type="text" id="userInput" placeholder="输入关键词..." onkeydown="checkEnter(event)">
-    <button onclick="sendMessage()">发送</button>
+    <div class="dropdown">
+        <input type="text" id="userInput" placeholder="输入关键词......" oninput="filterOptions()" onkeydown="checkEnter(event)" onfocus="filterOptions()"> <!-- 用户输入框 -->
+        <div id="dropdownMenu" class="dropdown-content"></div> <!-- 下拉菜单 -->
+    </div>
+    <button onclick="sendMessage()">⇨</button> <!-- 发送按钮 -->
 </div>
 
 <script>
     // 检测键盘事件
     function checkEnter(event) {
-        if (event.key === 'Enter') {
-            sendMessage();
+        if (event.key === 'Enter') { // 如果按下回车键
+            sendMessage(); // 发送消息
         }
     }
 
     function sendMessage() {
-        const userInput = document.getElementById('userInput').value;
-        if (userInput.trim() === "") return;
+        const userInput = document.getElementById('userInput').value; // 获取用户输入
+        if (userInput.trim() === "") return; // 如果输入为空则返回
 
         // 显示用户输入的消息
         displayMessage(userInput, 'user');
 
         // 检测关键词并生成相应的回复
-        let botResponse = detectKeyword(userInput);
-        displayMessage(botResponse, 'bot');
+        let botResponse = detectKeyword(userInput); // 获取机器人的回复
+        displayMessage(botResponse, 'bot'); // 显示机器人的回复
 
         // 清空输入框
         document.getElementById('userInput').value = '';
 
-        // 滚最新消息
+        // 滚动到最新消息
         const chatContainer = document.getElementById('chatContainer');
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+        chatContainer.scrollTop = chatContainer.scrollHeight; // 滚动到最底部
+
+        // 隐藏下拉菜单
+        document.getElementById('dropdownMenu').classList.remove('show');
     }
 
     function displayMessage(message, type) {
-        const chatContainer = document.getElementById('chatContainer');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${type}`;
-        
+        const chatContainer = document.getElementById('chatContainer'); // 获取聊天容器
+        const messageDiv = document.createElement('div'); // 创建一个新的消息元素
+        messageDiv.className = `message ${type}`; // 设置消息类型
+
         messageDiv.innerHTML = message.replace(/\n/g, "<br>"); // 替换换行符为 <br>
         chatContainer.appendChild(messageDiv); // 将新消息插入到聊天框中
+
+        // 添加双击事件以全选消息
+        messageDiv.ondblclick = function() {
+            const range = document.createRange(); // 创建一个新的范围对象
+            range.selectNodeContents(messageDiv); // 选择消息内容
+            const selection = window.getSelection(); // 获取当前选择
+            selection.removeAllRanges(); // 清除之前的选择
+            selection.addRange(range); // 添加新的选择
+        };
     }
 
-    function detectKeyword(input) {
+   function detectKeyword(input) {
         const keywords = {
-            '天气': '未调取到正确的API',
-            '时间': getCurrentTime(), // 调用函数获得时间。
-            '日期': getCurrentDate(), // 调用函数获取当前日期。
-            '星期': getCurrentWeekday(), // 调用函数获取当前星期。
+            '日期': getCurrentDate(), // 调用函数获取当前日期
+            '星期': getCurrentWeekday(), // 调用函数获取当前星期
             '你好': '你好！很高兴见到你！',
             '帮助': '我可以帮助你查询天气、时间等信息。',
             '价值观': '<span class="highlight">规划设计集团核心价值观</span><br>孜孜以求<br>先行一步<br>协同共生<br>创造价值', // 添加规划集团价值观
-            '规范': '<br>'+
-                '1.《城市道路交通工程项目规范》（GB 55011-2021）<br>'+
-                '2.《城市道路工程设计规范》（CJJ 37-2012）2016年版<br>'+
+            '规范': '<br>' +
+                '1.《城市道路交通工程项目规范》（GB 55011-2021）<br>' +
+                '2.《城市道路工程设计规范》（CJJ 37-2012）2016年版<br>' +
                 '3.《城市道路路线设计规范》（CJJ 193-2012）<br>' +
                 '4.《城市道路交叉口设计规程》（CJJ 152-2010）<br>' +
                 '5.《城镇道路路面设计规范》（CJJ 169-2012）<br>' +
                 '6.《城市道路路基设计规范》（CJJ194-2013）<br>' +
-                '7.《透水水泥混凝土路面技术规程》（DGJ32/TJ61-2015）<br>'+
+                '7.《透水水泥混凝土路面技术规程》（DGJ32/TJ61-2015）<br>' +
                 '8.《无障碍设计规范》（GB50763-2012）<br>' +
-                '9.《建筑与市政工程无障碍通用规范》（GB 55019-2021）<br>'+
+                '9.《建筑与市政工程无障碍通用规范》（GB 55019-2021）<br>' +
                 '10.《建筑与市政工程抗震通用规范》（GB 55002-2021）<br>' +
                 '11.《公路工程技术标准》（JTG B01-2014）<br>' +
-                '12.《公路沥青路面设计规范》（JTJ D50-2017）<br>'+
-                '13.《公路水泥混凝土路面设计规范》（JTG D40-2011）<BR>'+
-                '14.《公路路基设计规范》（JTG D30-2015）<BR>'+
-                '15.《公路沥青路面施工技术规范》（JTG F40-2004）<br>'+
-                '16.《公路路面基层施工技术细则》（JTG/T F20-2015）<br>'+
+                '12.《公路沥青路面设计规范》（JTJ D50-2017）<br>' +
+                '13.《公路水泥混凝土路面设计规范》（JTG D40-2011）<BR>' +
+                '14.《公路路基设计规范》（JTG D30-2015）<BR>' +
+                '15.《公路沥青路面施工技术规范》（JTG F40-2004）<br>' +
+                '16.《公路路面基层施工技术细则》（JTG/T F20-2015）<br>' +
                 '17.《城镇道路工程施工与质量验收规范》（CJJ 1-2008）',
-                '你是谁': '我是小助手',
-                '我是谁': '你是勤劳的工程师',
-                '全称': '江苏设协工程建设施工图审查有限公司',
-            '号码'	:'		13951951854			<br>	'	,
- 			'深度'	:'	《市政公用工程设计文件编制深度规定（2013年版）》		',	
+            '你是谁': '我是小助手',
+            '我是谁': '你是勤劳的工程师',
+            '全称': '江苏设协工程建设施工图审查有限公司',
+            '号码': '13951951854<br>',
+            '深度': '《市政公用工程设计文件编制深度规定（2013年版）》',
 			'标准'	:'			'+	
 				'	1.道路等级：城市主（次）干路；	<br>	'+	
 				'	2.设计速度：50（40）km/h；	<br>	'+	
@@ -492,7 +540,7 @@
 				'	<td colspan="2">4MPa</td>		'+	
 				'	</tr>		'+	
  				'	</table>		',
-			'水稳'	:'	<table border="1">		'+
+			'水稳级配'	:'	<table border="1">		'+
 				'	<tr>		'+
 				'	<td>筛孔尺寸mm</td>		'+
 				'	<td>31.5</td>		'+
@@ -554,7 +602,7 @@
 				'	</tr>		'+
 				'	</table>		'+
 				'	适用于江苏地区，七月平均气温大于30°，气候分布区1-3		',
-			'沥青'	:'	<table border="1">		'+
+			'沥青压实度'	:'	<table border="1">		'+
 				'	<td>SMA</td>		'+
 				'	<td>98%</td>		'+
 				'	</tr>		'+
@@ -564,7 +612,7 @@
 				'	<td>次干路、支路</td>		'+
 				'	<td>95%</td>		'+
 				'	</table>		',
-			'粘层'	:'	<table border="1">		'+
+			'粘层封层透层'	:'	<table border="1">		'+
 				'	<td>粘层</td>		'+
 				'	<td>乳化沥青PC-3</td>		'+
 				'	<td colspan="2">0.3~0.6L/m2</td>		'+
@@ -579,49 +627,91 @@
 				'	<td>0.9~1.0kg/m2</td>		'+
 				'	</tr>		'+
 				'	</table>		',
-				
-				
         };
 
         // 查找匹配的关键词
         for (const key in keywords) {
-            if (input.includes(key)) {
-                return keywords[key];
+            if (input.includes(key)) { // 如果用户输入包含关键词
+                return keywords[key]; // 返回对应的回复
             }
         }
         console.log("没有找到相关内容的关键词:", input); // 调试信息
-        return '没有找到相关内容，请输入精确关键词。';
+        return '没有找到相关内容，请输入精确关键词。'; // 默认回复
     }
-
     // 获取当前星期几的函数
     function getCurrentWeekday() {
         const days = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
-        const today = new Date();
+        const today = new Date(); // 获取当前日期
         return days[today.getDay()]; // getDay() 返回 0（星期日）到 6（星期六）
     }
 
     // 获取当前时间的函数
     function getCurrentTime() {
-        const now = new Date();
+        const now = new Date(); // 获取当前时间
         const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
         return now.toLocaleString('zh-CN', options); // 格式化为中文格式的日期时间
     }
 
     // 获取当前日期的函数
     function getCurrentDate() {
-        const now = new Date();
+        const now = new Date(); // 获取当前日期
         const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
         return now.toLocaleDateString('zh-CN', options); // 格式化为中文格式的日期
     }
+function filterOptions() {
+    var input = document.getElementById('userInput').value.toLowerCase(); // 获取用户输入并转换为小写
+    var dropdown = document.getElementById('dropdownMenu'); // 获取下拉菜单
+    dropdown.innerHTML = '';  // 清空下拉菜单
+    // 定义关键词列表
+    const keywords = [
+        '价值观',
+        '规范',
+        '标准',
+        '指标',
+        '缓和曲线',
+        '坡长限制',
+        '免审',
+        '农路',
+        '水稳级配',
+        '级配碎石',
+        '动稳定度',
+        '沥青压实度',
+        '粘层封层透层',
+        '弯沉',
+        '沥青弯沉',
+        '水稳弯沉',
+        // 其他关键词...
+    ];
+     // 遍历关键词并添加到下拉菜单
+    keywords.forEach(function(keyword) {
+        // 检查关键词是否包含用户输入的内容，并且输入不为空
+        if (keyword.toLowerCase().includes(input) && input) {
+            var optionDiv = document.createElement('div'); // 创建新的下拉选项
+            optionDiv.innerText = keyword; // 设置选项文本
+            optionDiv.onclick = function() {
+                document.getElementById('userInput').value = keyword; // 将选项值赋到输入框
+                dropdown.classList.remove('show'); // 隐藏下拉菜单
+            };
+            dropdown.appendChild(optionDiv); // 将选项添加到下拉菜单
+        }
+    });
+
+    // 如果下拉菜单有子元素，则显示；否则隐藏
+    if (dropdown.childElementCount > 0) {
+        dropdown.classList.add('show');
+    } else {
+        dropdown.classList.remove('show');
+    }
+}
+
+// 点击输入框外部时，隐藏下拉菜单
+window.onclick = function(event) {
+    if (!event.target.matches('#userInput')) { // 如果点击的不是输入框
+        document.getElementById('dropdownMenu').classList.remove('show'); // 隐藏下拉菜单
+    }
+}
+
 </script>
-  <datalist id="keywords">
-    <option value="压实度">
-    <option value="水稳压实度">
-    <option value="沥青压实度">
-    <option value="弯沉">
-    <option value="沥青弯沉">
-    <option value="水稳弯沉">
-  </datalist>
 
 </body>
 </html>
